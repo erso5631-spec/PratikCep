@@ -1,0 +1,105 @@
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1455d9">
+<title>PratikCep</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial;background:#f2f5fb;color:#17243b}
+header{background:#1455d9;color:white;padding:28px 20px;border-radius:0 0 25px 25px}
+header h1{margin:0;font-size:27px}
+header p{margin-bottom:0;color:#dce8ff}
+main{padding:18px}
+h2{font-size:19px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{background:white;border:0;border-radius:16px;padding:19px 12px;text-align:left;box-shadow:0 3px 12px #17243b12;font-size:15px;color:#17243b}
+.card span{display:block;font-size:27px;margin-bottom:12px}
+.panel{display:none;background:white;padding:18px;border-radius:16px;margin-top:18px}
+input,textarea{width:100%;padding:13px;margin:8px 0;border:1px solid #dce2ed;border-radius:10px;font-size:16px}
+button.action{background:#1455d9;color:white;border:0;padding:13px;border-radius:10px;width:100%;margin-top:8px;font-size:16px}
+#result{margin-top:14px;font-weight:bold;overflow-wrap:anywhere}
+</style>
+</head>
+<body>
+<header>
+<h1>PratikCep</h1>
+<p>Günlük hayatın dijital yardımcısı</p>
+</header>
+<main>
+<h2>Ne yapmak istersin?</h2>
+<div class="grid">
+<button class="card" onclick="openTool('discount')"><span>🛍️</span>İndirim Hesapla</button>
+<button class="card" onclick="openTool('percent')"><span>％</span>Yüzde Hesapla</button>
+<button class="card" onclick="openTool('notes')"><span>📝</span>Notlarım</button>
+<button class="card" onclick="openTool('letter')"><span>📄</span>Dilekçe Taslağı</button>
+</div>
+<section id="panel" class="panel">
+<h2 id="title"></h2>
+<div id="fields"></div>
+<div id="result"></div>
+</section>
+</main>
+<script>
+const panel=document.getElementById('panel');
+const title=document.getElementById('title');
+const fields=document.getElementById('fields');
+const result=document.getElementById('result');
+
+function openTool(tool){
+panel.style.display='block';
+result.textContent='';
+if(tool==='discount'){
+title.textContent='İndirim Hesaplama';
+fields.innerHTML='<input id="price" type="number" placeholder="Ürün fiyatı (TL)"><input id="rate" type="number" placeholder="İndirim oranı (%)"><button class="action" onclick="discount()">Hesapla</button>';
+}
+if(tool==='percent'){
+title.textContent='Yüzde Hesaplama';
+fields.innerHTML='<input id="number" type="number" placeholder="Sayı"><input id="percent" type="number" placeholder="Yüzde (%)"><button class="action" onclick="percentage()">Hesapla</button>';
+}
+if(tool==='notes'){
+title.textContent='Notlarım';
+fields.innerHTML='<textarea id="note" rows="5" placeholder="Notunu buraya yaz..."></textarea><button class="action" onclick="saveNote()">Kaydet</button><button class="action" onclick="showNotes()">Notlarımı Göster</button>';
+}
+if(tool==='letter'){
+title.textContent='Dilekçe Taslağı';
+fields.innerHTML='<input id="institution" placeholder="Kurum adı"><input id="subject" placeholder="Konu"><textarea id="detail" rows="5" placeholder="Talebinizi yazın"></textarea><button class="action" onclick="makeLetter()">Taslak Oluştur</button>';
+}
+panel.scrollIntoView({behavior:'smooth'});
+}
+function discount(){
+let p=Number(document.getElementById('price').value);
+let r=Number(document.getElementById('rate').value);
+if(p<=0||r<0||r>100)return result.textContent='Geçerli fiyat ve indirim oranı gir.';
+result.textContent='İndirimli fiyat: '+(p*(1-r/100)).toFixed(2)+' TL';
+}
+function percentage(){
+let n=Number(document.getElementById('number').value);
+let p=Number(document.getElementById('percent').value);
+result.textContent='Sonuç: '+(n*p/100).toFixed(2);
+}
+function saveNote(){
+let n=document.getElementById('note').value;
+if(!n.trim())return result.textContent='Önce not yaz.';
+let notes=JSON.parse(localStorage.getItem('notes')||'[]');
+notes.push(n);
+localStorage.setItem('notes',JSON.stringify(notes));
+result.textContent='Not kaydedildi.';
+}
+function showNotes(){
+let notes=JSON.parse(localStorage.getItem('notes')||'[]');
+result.textContent=notes.length?notes.join(' | '):'Henüz not yok.';
+}
+function makeLetter(){
+let i=document.getElementById('institution').value;
+let s=document.getElementById('subject').value;
+let d=document.getElementById('detail').value;
+if(!i.trim()||!s.trim()||!d.trim())return result.textContent='Tüm alanları doldur.';
+result.textContent=i+' MAKAMINA\n\nKonu: '+s+'\n\n'+d+'\n\nGereğini arz ederim.';
+}
+</script>
+</body>
+  </html>
+  
