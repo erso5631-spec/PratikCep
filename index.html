@@ -5,6 +5,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#155eef">
+<meta name="description" content="Günlük işler için pratik araçlar">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="PratikCep">
+<link rel="manifest" href="/PratikCep/manifest.json">
+<link rel="icon" href="/PratikCep/icon.svg" type="image/svg+xml">
 <title>PratikCep</title>
 <style>
 *{box-sizing:border-box}
@@ -84,10 +89,14 @@ const tools=[
 {id:"password",name:"Şifre oluştur",desc:"Güçlü şifre üret",icon:"🔐",cat:"Güvenlik"},
 {id:"barcode",name:"Barkod okuyucu",desc:"Kamerayla barkod tara",icon:"📷",cat:"Günlük"}
 ];
-let category="Tümü",current="";
+let category="Tümü";
 let favorites=JSON.parse(localStorage.getItem("pc-favorites")||"[]");
 let recent=JSON.parse(localStorage.getItem("pc-recent")||"[]");
-function save(){localStorage.setItem("pc-favorites",JSON.stringify(favorites));localStorage.setItem("pc-recent",JSON.stringify(recent))}
+
+function save(){
+localStorage.setItem("pc-favorites",JSON.stringify(favorites));
+localStorage.setItem("pc-recent",JSON.stringify(recent));
+}
 function renderChips(){
 const cats=["Tümü","Hesaplama","Finans","Günlük","Belge","Güvenlik","⭐ Favoriler"];
 $("chips").innerHTML=cats.map(c=>`<button data-cat="${c}" class="${category===c?"active":""}">${c}</button>`).join("");
@@ -97,13 +106,15 @@ const q=$("search").value.toLowerCase();
 let list=tools.filter(t=>(category==="Tümü"||t.cat===category||(category==="⭐ Favoriler"&&favorites.includes(t.id)))&&(t.name+" "+t.desc).toLowerCase().includes(q));
 $("tools").innerHTML=list.map(t=>`<div class="tool" data-open="${t.id}">
 <button class="star" data-star="${t.id}" aria-label="Favori">${favorites.includes(t.id)?"★":"☆"}</button>
-<div style="font-size:25px">${t.icon}</div><strong>${t.name}</strong><small>${t.desc}</small>
+<div style="font-size:25px">${t.icon}</div>
+<strong>${t.name}</strong><small>${t.desc}</small>
 </div>`).join("")||"<p>Sonuç bulunamadı.</p>";
 }
 function openTool(id){
-current=id;
-const t=tools.find(x=>x.id===id);if(!t)return;
-recent=[id,...recent.filter(x=>x!==id)].slice(0,8);save();
+const t=tools.find(x=>x.id===id);
+if(!t)return;
+recent=[id,...recent.filter(x=>x!==id)].slice(0,8);
+save();
 $("panelTitle").textContent=t.icon+" "+t.name;
 $("panelBody").innerHTML=toolHTML(id);
 $("panel").classList.remove("hidden");
@@ -127,33 +138,45 @@ case"barcode":return `<p>Kamera izni vererek barkodu okutabilirsin. Tarayıcın 
 }
 return"";
 }
-function showResult(msg){const r=$("result");if(r){r.textContent=msg;r.classList.remove("hidden")}}
+function showResult(msg){
+const r=$("result");
+if(r){r.textContent=msg;r.classList.remove("hidden")}
+}
 function num(id){return Number($(id).value)}
 function valid(...ids){return ids.every(id=>$(id)&&$(id).value.trim()!=="")}
-function calculate(action){
-if(action==="discount"){
+function calculate(a){
+if(a==="discount"){
 if(!valid("price","rate"))return showResult("Lütfen tüm alanları doldur.");
-let p=num("price"),r=num("rate");showResult("İndirim tutarı: "+(p*r/100).toFixed(2)+" TL\nİndirimli fiyat: "+(p-p*r/100).toFixed(2)+" TL");
+let p=num("price"),r=num("rate");
+if(p<0||r<0||r>100)return showResult("Geçerli fiyat ve yüzde gir.");
+showResult("İndirim tutarı: "+(p*r/100).toFixed(2)+" TL\nİndirimli fiyat: "+(p-p*r/100).toFixed(2)+" TL");
 }
-if(action==="percent"){
+if(a==="percent"){
 if(!valid("number","percentRate"))return showResult("Lütfen tüm alanları doldur.");
 showResult("Sonuç: "+(num("number")*num("percentRate")/100));
 }
-if(action==="age"){
+if(a==="age"){
 if(!valid("birth"))return showResult("Doğum tarihini seç.");
-let b=new Date($("birth").value+"T00:00:00"),n=new Date();if(b>n)return showResult("Doğum tarihi gelecekte olamaz.");
-let y=n.getFullYear()-b.getFullYear(),m=n.getMonth()-b.getMonth(),d=n.getDate()-b.getDate();if(d<0){m--;d+=new Date(n.getFullYear(),n.getMonth(),0).getDate()}if(m<0){y--;m+=12}
+let b=new Date($("birth").value+"T00:00:00"),n=new Date();
+if(b>n)return showResult("Doğum tarihi gelecekte olamaz.");
+let y=n.getFullYear()-b.getFullYear(),m=n.getMonth()-b.getMonth(),d=n.getDate()-b.getDate();
+if(d<0){m--;d+=new Date(n.getFullYear(),n.getMonth(),0).getDate()}
+if(m<0){y--;m+=12}
 showResult(`Yaşın: ${y} yıl, ${m} ay, ${d} gün.`);
 }
-if(action==="date"){
+if(a==="date"){
 if(!valid("date1","date2"))return showResult("İki tarihi de seç.");
-let a=new Date($("date1").value+"T00:00:00"),b=new Date($("date2").value+"T00:00:00");let days=Math.round(Math.abs(b-a)/86400000);
-showResult("İki tarih arasında "+days+" gün var.");
+let x=new Date($("date1").value+"T00:00:00"),y=new Date($("date2").value+"T00:00:00");
+showResult("İki tarih arasında "+Math.round(Math.abs(y-x)/86400000)+" gün var.");
 }
-if(action==="calculator"){
+if(a==="calculator"){
 if(!valid("calcA","calcB"))return showResult("İki sayıyı da gir.");
-let a=num("calcA"),b=num("calcB"),op=$("calcOp").value,v;
-if(op==="+")v=a+b;else if(op==="-")v=a-b;else if(op==="*")v=a*b;else if(op==="/"){if(b===0)return showResult("Sıfıra bölme yapılamaz.");v=a/b}else v=a*b/100;
+let x=num("calcA"),y=num("calcB"),op=$("calcOp").value,v;
+if(op==="+")v=x+y;
+else if(op==="-")v=x-y;
+else if(op==="*")v=x*y;
+else if(op==="/"){if(y===0)return showResult("Sıfıra bölme yapılamaz.");v=x/y}
+else v=x*y/100;
 showResult("Sonuç: "+v);
 }
 }
@@ -163,40 +186,62 @@ const cached=localStorage.getItem("pc-exchange-cache");
 if(cached){try{rates=JSON.parse(cached).rates}catch(e){}}
 try{
 const res=await fetch("https://open.er-api.com/v6/latest/USD");
-if(!res.ok)throw Error("Kur alınamadı");
-const data=await res.json();if(data.result!=="success")throw Error("Kur alınamadı");
-rates=data.rates;localStorage.setItem("pc-exchange-cache",JSON.stringify({rates:rates,date:data.time_last_update_utc}));
+if(!res.ok)throw Error();
+const data=await res.json();
+if(data.result!=="success")throw Error();
+rates=data.rates;
+localStorage.setItem("pc-exchange-cache",JSON.stringify({rates:rates,date:data.time_last_update_utc}));
 $("rateInfo").textContent="Kur güncellemesi: "+data.time_last_update_utc;
 convert();
 }catch(e){
-if(rates){$("rateInfo").textContent="İnternet bağlantısı yok; kayıtlı kurlar kullanılıyor.";convert()}
-else $("result").textContent="Kurlar yüklenemedi. İnternet bağlantını kontrol edip tekrar dene.";
+if(rates){$("rateInfo").textContent="Kayıtlı kurlar kullanılıyor.";convert()}
+else $("result").textContent="Kurlar yüklenemedi. İnternet bağlantını kontrol et.";
 }
 }
 function convert(){
 if(!rates)return;
 let amount=num("currencyAmount"),from=$("currencyFrom").value,to=$("currencyTo").value;
 if(!Number.isFinite(amount)||amount<0)return showResult("Geçerli bir miktar gir.");
-let v=amount/rates[from]*rates[to];
-showResult(amount+" "+from+" = "+v.toFixed(2)+" "+to);
+showResult(amount+" "+from+" = "+(amount/rates[from]*rates[to]).toFixed(2)+" "+to);
 }
 function action(a){
 if(["discount","percent","age","date","calculator"].includes(a))return calculate(a);
-if(a==="saveNotes"){localStorage.setItem("pratikcep-notes",$("notesText").value);showResult("Notun kaydedildi.");return}
+if(a==="saveNotes"){
+localStorage.setItem("pratikcep-notes",$("notesText").value);
+showResult("Notun kaydedildi.");return;
+}
 if(a==="petition"){
 if(!valid("petName","petOrg","petSubject","petBody"))return showResult("Lütfen gerekli alanları doldur.");
 let text=`${$("petOrg").value.toLocaleUpperCase("tr-TR")} MAKAMINA\n\nKonu: ${$("petSubject").value}\n\n${$("petBody").value}\n\nGereğini arz ederim.\n\n${$("petDate").value}\n${$("petName").value}`;
-showResult(text);return}
-if(a==="copyResult"){let el=$("result");if(el&&el.textContent)navigator.clipboard?.writeText(el.textContent).then(()=>showResult("Kopyalandı.")).catch(()=>showResult("Kopyalama desteklenmiyor."));return}
+showResult(text);return;
+}
+if(a==="copyResult"){
+let el=$("result");
+if(el&&el.textContent&&navigator.clipboard){
+navigator.clipboard.writeText(el.textContent).then(()=>showResult("Kopyalandı.")).catch(()=>showResult("Kopyalama desteklenmiyor."));
+}else showResult("Kopyalama desteklenmiyor.");
+return;
+}
 if(a==="qr"){
-let text=$("qrText").value.trim();if(!text)return alert("Önce metin veya bağlantı gir.");
+let text=$("qrText").value.trim();
+if(!text)return alert("Önce metin veya bağlantı gir.");
 $("qrOutput").innerHTML="";
-if(!window.QRCode){let s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js";s.onload=()=>new QRCode($("qrOutput"),{text,width:210,height:210});s.onerror=()=>alert("QR kütüphanesi yüklenemedi. İnternet bağlantını kontrol et.");document.head.appendChild(s)}
-else new QRCode($("qrOutput"),{text,width:210,height:210});
-return}
+if(!window.QRCode){
+let s=document.createElement("script");
+s.src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js";
+s.onload=()=>new QRCode($("qrOutput"),{text,width:210,height:210});
+s.onerror=()=>alert("QR kütüphanesi yüklenemedi.");
+document.head.appendChild(s);
+}else new QRCode($("qrOutput"),{text,width:210,height:210});
+return;
+}
 if(a==="password"){
-let len=Math.max(4,Math.min(64,num("passLength")||16)),chars="ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%&*";
-let out="";for(let i=0;i<len;i++)out+=chars[Math.floor(Math.random()*chars.length)];showResult(out);return}
+let len=Math.max(4,Math.min(64,num("passLength")||16));
+let chars="ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%&*";
+let out="";
+for(let i=0;i<len;i++)out+=chars[Math.floor(Math.random()*chars.length)];
+showResult(out);return;
+}
 if(a==="currency"){convert();return}
 if(a==="scan"){startScan();return}
 if(a==="stopScan"){stopScan();return}
@@ -211,25 +256,60 @@ const detector=new BarcodeDetector();
 const video=$("video");
 async function scan(){
 if(!stream)return;
-if(video.readyState>=2){try{let codes=await detector.detect(video);if(codes.length){showResult("Okunan barkod: "+codes[0].rawValue);stopScan();return}}catch(e){}}
+if(video.readyState>=2){
+try{
+let codes=await detector.detect(video);
+if(codes.length){showResult("Okunan barkod: "+codes[0].rawValue);stopScan();return}
+}catch(e){}
+}
 scanTimer=setTimeout(scan,500);
 }
 scan();
 }catch(e){showResult("Kamera açılamadı. Kamera iznini kontrol et.")}
 }
-function stopScan(){if(scanTimer)clearTimeout(scanTimer);if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;if($("video"))$("video").srcObject=null}
-$("chips").addEventListener("click",e=>{let b=e.target.closest("[data-cat]");if(!b)return;category=b.dataset.cat;renderChips();renderTools()});
-$("tools").addEventListener("click",e=>{
-let star=e.target.closest("[data-star]");if(star){let id=star.dataset.star;favorites=favorites.includes(id)?favorites.filter(x=>x!==id):[...favorites,id];save();renderTools();return}
-let card=e.target.closest("[data-open]");if(card)openTool(card.dataset.open);
+function stopScan(){
+if(scanTimer)clearTimeout(scanTimer);
+if(stream)stream.getTracks().forEach(t=>t.stop());
+stream=null;
+if($("video"))$("video").srcObject=null;
+}
+$("chips").addEventListener("click",e=>{
+let b=e.target.closest("[data-cat]");
+if(!b)return;
+category=b.dataset.cat;
+renderChips();renderTools();
 });
-$("panelBody").addEventListener("click",e=>{let b=e.target.closest("[data-action]");if(b)action(b.dataset.action)});
-$("closeBtn").addEventListener("click",()=>{$("panel").classList.add("hidden");stopScan()});
+$("tools").addEventListener("click",e=>{
+let star=e.target.closest("[data-star]");
+if(star){
+let id=star.dataset.star;
+favorites=favorites.includes(id)?favorites.filter(x=>x!==id):[...favorites,id];
+save();renderTools();return;
+}
+let card=e.target.closest("[data-open]");
+if(card)openTool(card.dataset.open);
+});
+$("panelBody").addEventListener("click",e=>{
+let b=e.target.closest("[data-action]");
+if(b)action(b.dataset.action);
+});
+$("closeBtn").addEventListener("click",()=>{
+$("panel").classList.add("hidden");stopScan();
+});
 $("search").addEventListener("input",renderTools);
-$("themeBtn").addEventListener("click",()=>{document.body.classList.toggle("dark");localStorage.setItem("pc-theme",document.body.classList.contains("dark")?"dark":"light")});
+$("themeBtn").addEventListener("click",()=>{
+document.body.classList.toggle("dark");
+localStorage.setItem("pc-theme",document.body.classList.contains("dark")?"dark":"light");
+});
 if(localStorage.getItem("pc-theme")==="dark")document.body.classList.add("dark");
 renderChips();renderTools();
 })();
+if("serviceWorker" in navigator){
+window.addEventListener("load",()=>{
+navigator.serviceWorker.register("/PratikCep/service-worker.js",{scope:"/PratikCep/"})
+.catch(err=>console.log("Service Worker kaydı başarısız:",err));
+});
+}
 </script>
 </body>
   </html>
