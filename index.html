@@ -3,103 +3,178 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#1455d9">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#155eef">
 <title>PratikCep</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;font-family:Arial;background:#f2f5fb;color:#17243b}
-header{background:#1455d9;color:white;padding:28px 20px;border-radius:0 0 25px 25px}
-header h1{margin:0;font-size:27px}
-header p{margin-bottom:0;color:#dce8ff}
-main{padding:18px}
-h2{font-size:19px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.card{background:white;border:0;border-radius:16px;padding:19px 12px;text-align:left;box-shadow:0 3px 12px #17243b12;font-size:15px;color:#17243b}
-.card span{display:block;font-size:27px;margin-bottom:12px}
-.panel{display:none;background:white;padding:18px;border-radius:16px;margin-top:18px}
-input,textarea{width:100%;padding:13px;margin:8px 0;border:1px solid #dce2ed;border-radius:10px;font-size:16px}
-button.action{background:#1455d9;color:white;border:0;padding:13px;border-radius:10px;width:100%;margin-top:8px;font-size:16px}
-#result{margin-top:14px;font-weight:bold;overflow-wrap:anywhere}
+body{margin:0;background:#f5f7fc;color:#17243b;font-family:Arial,sans-serif;padding-bottom:85px}
+header{background:linear-gradient(135deg,#155eef,#397cf6);color:white;padding:27px 21px 32px;border-radius:0 0 28px 28px}
+.top{display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:25px;font-weight:800}
+.tag{font-size:12px;background:#ffffff25;padding:8px 12px;border-radius:20px}
+header h2{font-size:23px;margin:27px 0 7px}
+header p{font-size:14px;color:#e2eaff;margin:0}
+.search{background:white;border-radius:14px;padding:15px;margin-top:22px;display:flex;gap:10px;box-shadow:0 5px 20px #102b6515}
+.search input{border:0;outline:0;width:100%;font-size:15px}
+main{padding:20px}
+.heading{display:flex;justify-content:space-between;align-items:center;margin:22px 0 14px}
+.heading h3{margin:0;font-size:18px}
+.heading small{color:#155eef}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.card{background:white;border:1px solid #edf0f6;border-radius:18px;padding:18px 14px;text-align:left;box-shadow:0 4px 14px #14264d08;color:#17243b;min-height:130px;cursor:pointer}
+.card:active{transform:scale(.97)}
+.icon{width:45px;height:45px;border-radius:14px;display:grid;place-items:center;font-size:24px;margin-bottom:13px}
+.blue{background:#eaf1ff}.orange{background:#fff0df}.green{background:#e3f8ef}.purple{background:#f1eaff}
+.card strong{display:block;font-size:15px;margin-bottom:5px}
+.card small{font-size:12px;color:#8993a5}
+.panel{display:none;background:white;border-radius:18px;padding:19px;margin-top:22px;box-shadow:0 4px 18px #14264d10}
+.panel h3{margin-top:0}
+input,textarea{width:100%;padding:14px;margin:8px 0;border:1px solid #e0e5ee;border-radius:11px;font-size:15px}
+.action{width:100%;padding:14px;background:#155eef;color:white;border:0;border-radius:11px;font-size:15px;margin-top:8px}
+.result{white-space:pre-wrap;overflow-wrap:anywhere;margin-top:14px;line-height:1.6}
+.bottom{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #edf0f6;display:flex;justify-content:space-around;padding:13px 5px;z-index:5}
+.bottom button{border:0;background:none;color:#778397;font-size:12px}
+.bottom button b{display:block;font-size:20px;margin-bottom:4px}
+.bottom button.active{color:#155eef}
+.empty{color:#8a95a6;font-size:13px}
 </style>
 </head>
 <body>
 <header>
-<h1>PratikCep</h1>
-<p>Günlük hayatın dijital yardımcısı</p>
+ <div class="top">
+  <div class="logo">✦ PratikCep</div>
+  <div class="tag">Günlük yardımcın</div>
+ </div>
+ <h2>Merhaba! 👋</h2>
+ <p>Bugün hangi işini kolaylaştıralım?</p>
+ <div class="search">
+  <span>🔎</span>
+  <input id="search" placeholder="Bir araç ara..." oninput="filterCards()">
+ </div>
 </header>
+
 <main>
-<h2>Ne yapmak istersin?</h2>
-<div class="grid">
-<button class="card" onclick="openTool('discount')"><span>🛍️</span>İndirim Hesapla</button>
-<button class="card" onclick="openTool('percent')"><span>％</span>Yüzde Hesapla</button>
-<button class="card" onclick="openTool('notes')"><span>📝</span>Notlarım</button>
-<button class="card" onclick="openTool('letter')"><span>📄</span>Dilekçe Taslağı</button>
-</div>
-<section id="panel" class="panel">
-<h2 id="title"></h2>
-<div id="fields"></div>
-<div id="result"></div>
-</section>
+ <div class="heading"><h3>Hızlı işlemler</h3><small>PratikCep</small></div>
+ <div class="grid" id="grid">
+  <button class="card" data-name="indirim hesaplama" onclick="openTool('discount')">
+   <div class="icon blue">🛍️</div><strong>İndirim hesapla</strong><small>İndirimli fiyatı öğren</small>
+  </button>
+  <button class="card" data-name="yüzde hesaplama" onclick="openTool('percent')">
+   <div class="icon orange">％</div><strong>Yüzde hesapla</strong><small>Kolayca oran hesapla</small>
+  </button>
+  <button class="card" data-name="notlarım not" onclick="openTool('notes')">
+   <div class="icon green">📝</div><strong>Notlarım</strong><small>Notlarını kaydet</small>
+  </button>
+  <button class="card" data-name="dilekçe taslağı evrak" onclick="openTool('letter')">
+   <div class="icon purple">📄</div><strong>Dilekçe hazırla</strong><small>Yazını kolayca oluştur</small>
+  </button>
+ </div>
+
+ <div class="heading"><h3>Günlük yardımcın</h3></div>
+ <div class="grid">
+  <button class="card" onclick="openTool('discount')">
+   <div class="icon orange">💰</div><strong>Alışveriş hesabı</strong><small>Fiyatını hemen hesapla</small>
+  </button>
+  <button class="card" onclick="openTool('notes')">
+   <div class="icon blue">📌</div><strong>Hatırlatıcı notlar</strong><small>Önemli notlarını sakla</small>
+  </button>
+ </div>
+
+ <section class="panel" id="panel">
+  <h3 id="title">İşlem</h3>
+  <div id="fields"></div>
+  <div class="result" id="result"></div>
+ </section>
 </main>
+
+<nav class="bottom">
+ <button class="active" onclick="home()"><b>⌂</b>Ana sayfa</button>
+ <button onclick="openTool('discount')"><b>％</b>Hesaplama</button>
+ <button onclick="openTool('notes')"><b>▤</b>Notlar</button>
+ <button onclick="openTool('letter')"><b>✎</b>Evrak</button>
+</nav>
+
 <script>
 const panel=document.getElementById('panel');
 const title=document.getElementById('title');
 const fields=document.getElementById('fields');
 const result=document.getElementById('result');
 
+function home(){
+ panel.style.display='none';
+ document.getElementById('search').value='';
+ filterCards();
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+function filterCards(){
+ const q=document.getElementById('search').value.toLocaleLowerCase('tr');
+ document.querySelectorAll('#grid .card').forEach(c=>{
+ c.style.display=c.dataset.name.includes(q)?'block':'none';
+ });
+}
 function openTool(tool){
-panel.style.display='block';
-result.textContent='';
-if(tool==='discount'){
-title.textContent='İndirim Hesaplama';
-fields.innerHTML='<input id="price" type="number" placeholder="Ürün fiyatı (TL)"><input id="rate" type="number" placeholder="İndirim oranı (%)"><button class="action" onclick="discount()">Hesapla</button>';
-}
-if(tool==='percent'){
-title.textContent='Yüzde Hesaplama';
-fields.innerHTML='<input id="number" type="number" placeholder="Sayı"><input id="percent" type="number" placeholder="Yüzde (%)"><button class="action" onclick="percentage()">Hesapla</button>';
-}
-if(tool==='notes'){
-title.textContent='Notlarım';
-fields.innerHTML='<textarea id="note" rows="5" placeholder="Notunu buraya yaz..."></textarea><button class="action" onclick="saveNote()">Kaydet</button><button class="action" onclick="showNotes()">Notlarımı Göster</button>';
-}
-if(tool==='letter'){
-title.textContent='Dilekçe Taslağı';
-fields.innerHTML='<input id="institution" placeholder="Kurum adı"><input id="subject" placeholder="Konu"><textarea id="detail" rows="5" placeholder="Talebinizi yazın"></textarea><button class="action" onclick="makeLetter()">Taslak Oluştur</button>';
-}
-panel.scrollIntoView({behavior:'smooth'});
+ panel.style.display='block';
+ result.textContent='';
+ if(tool==='discount'){
+ title.textContent='🛍️ İndirim Hesaplama';
+ fields.innerHTML='<input id="price" type="number" min="0" placeholder="Ürün fiyatı (TL)"><input id="rate" type="number" min="0" max="100" placeholder="İndirim oranı (%)"><button class="action" onclick="discount()">Hesapla</button>';
+ }
+ if(tool==='percent'){
+ title.textContent='％ Yüzde Hesaplama';
+ fields.innerHTML='<input id="number" type="number" placeholder="Sayı"><input id="percent" type="number" placeholder="Yüzde (%)"><button class="action" onclick="percentage()">Hesapla</button>';
+ }
+ if(tool==='notes'){
+ title.textContent='📝 Notlarım';
+ fields.innerHTML='<textarea id="note" rows="4" placeholder="Notunu buraya yaz..."></textarea><button class="action" onclick="saveNote()">Notu kaydet</button><button class="action" onclick="showNotes()">Kayıtlı notları göster</button>';
+ }
+ if(tool==='letter'){
+ title.textContent='📄 Dilekçe Taslağı';
+ fields.innerHTML='<input id="institution" placeholder="Kurum adı"><input id="subject" placeholder="Konu"><textarea id="detail" rows="5" placeholder="Talebini yaz"></textarea><button class="action" onclick="makeLetter()">Taslak oluştur</button>';
+ }
+ panel.scrollIntoView({behavior:'smooth'});
 }
 function discount(){
-let p=Number(document.getElementById('price').value);
-let r=Number(document.getElementById('rate').value);
-if(p<=0||r<0||r>100)return result.textContent='Geçerli fiyat ve indirim oranı gir.';
-result.textContent='İndirimli fiyat: '+(p*(1-r/100)).toFixed(2)+' TL';
+ const p=Number(document.getElementById('price').value);
+ const r=Number(document.getElementById('rate').value);
+ if(!document.getElementById('price').value||!document.getElementById('rate').value||p<0||r<0||r>100)return result.textContent='Geçerli fiyat ve indirim oranı gir.';
+ result.textContent='İndirim tutarı: '+(p*r/100).toFixed(2)+' TL\nÖdenecek tutar: '+(p*(1-r/100)).toFixed(2)+' TL';
 }
 function percentage(){
-let n=Number(document.getElementById('number').value);
-let p=Number(document.getElementById('percent').value);
-result.textContent='Sonuç: '+(n*p/100).toFixed(2);
+ const n=document.getElementById('number').value;
+ const p=document.getElementById('percent').value;
+ if(n===''||p==='')return result.textContent='İki alanı da doldur.';
+ result.textContent='Sonuç: '+(Number(n)*Number(p)/100).toFixed(2);
 }
 function saveNote(){
-let n=document.getElementById('note').value;
-if(!n.trim())return result.textContent='Önce not yaz.';
-let notes=JSON.parse(localStorage.getItem('notes')||'[]');
-notes.push(n);
-localStorage.setItem('notes',JSON.stringify(notes));
-result.textContent='Not kaydedildi.';
+ const n=document.getElementById('note').value.trim();
+ if(!n)return result.textContent='Önce bir not yaz.';
+ try{
+ const notes=JSON.parse(localStorage.getItem('pratikcep-notes')||'[]');
+ notes.push(n);
+ localStorage.setItem('pratikcep-notes',JSON.stringify(notes));
+ result.textContent='Not başarıyla kaydedildi.';
+ }catch(e){result.textContent='Not kaydedilemedi. Tarayıcı depolama alanını kontrol et.'}
 }
 function showNotes(){
-let notes=JSON.parse(localStorage.getItem('notes')||'[]');
-result.textContent=notes.length?notes.join(' | '):'Henüz not yok.';
+ try{
+ const notes=JSON.parse(localStorage.getItem('pratikcep-notes')||'[]');
+ result.textContent=notes.length?notes.map((n,i)=>(i+1)+'. '+n).join('\n\n'):'Henüz kayıtlı not yok.';
+ }catch(e){result.textContent='Notlar okunamadı.'}
 }
 function makeLetter(){
-let i=document.getElementById('institution').value;
-let s=document.getElementById('subject').value;
-let d=document.getElementById('detail').value;
-if(!i.trim()||!s.trim()||!d.trim())return result.textContent='Tüm alanları doldur.';
-result.textContent=i+' MAKAMINA\n\nKonu: '+s+'\n\n'+d+'\n\nGereğini arz ederim.';
+ const i=document.getElementById('institution').value.trim();
+ const s=document.getElementById('subject').value.trim();
+ const d=document.getElementById('detail').value.trim();
+ if(!i||!s||!d)return result.textContent='Lütfen tüm alanları doldur.';
+ const text=i.toLocaleUpperCase('tr')+' MAKAMINA\n\nKonu: '+s+'\n\n'+d+'\n\nGereğini arz ederim.\n\nAd Soyad:\nTarih:';
+ result.textContent=text;
+ const b=document.createElement('button');
+ b.className='action';b.textContent='Taslağı kopyala';
+ b.onclick=()=>{navigator.clipboard.writeText(text).then(()=>result.textContent=text+'\n\nKopyalandı.').catch(()=>result.textContent='Kopyalama desteklenmiyor.')};
+ result.appendChild(b);
 }
 </script>
 </body>
-  </html>
-  
+    </html>
+    
