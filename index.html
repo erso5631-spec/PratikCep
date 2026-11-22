@@ -37,7 +37,7 @@ main{padding:17px}
 .fav.on{color:#f5a400}
 .panel{display:none;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin-top:22px}
 .panel h3{margin-top:0}
-input,textarea{width:100%;padding:13px;margin:8px 0;border:1px solid var(--line);border-radius:10px;font-size:15px;background:var(--bg);color:var(--text)}
+input,textarea,select{width:100%;padding:13px;margin:8px 0;border:1px solid var(--line);border-radius:10px;font-size:15px;background:var(--bg);color:var(--text)}
 .action{width:100%;padding:14px;background:var(--blue);color:white;border:0;border-radius:11px;font-size:15px;margin-top:8px;cursor:pointer}
 .secondary{background:#eaf1ff;color:#155eef}
 .result{white-space:pre-wrap;overflow-wrap:anywhere;margin-top:14px;line-height:1.6}
@@ -50,6 +50,8 @@ input,textarea{width:100%;padding:13px;margin:8px 0;border:1px solid var(--line)
 video{width:100%;border-radius:12px;background:#111;margin-top:10px}
 .empty{color:var(--muted);font-size:13px;padding:12px 2px}
 .hidden{display:none!important}
+.calc-result{font-size:25px;font-weight:bold;text-align:right;padding:15px;background:var(--bg);border-radius:12px;overflow-wrap:anywhere}
+.info{font-size:12px;color:var(--muted);line-height:1.5}
 </style>
 </head>
 <body>
@@ -71,6 +73,7 @@ video{width:100%;border-radius:12px;background:#111;margin-top:10px}
 <button class="chip" onclick="setCategory('Günlük',this)">Günlük</button>
 <button class="chip" onclick="setCategory('Belge',this)">Belge</button>
 <button class="chip" onclick="setCategory('Güvenlik',this)">Güvenlik</button>
+<button class="chip" onclick="setCategory('Finans',this)">Finans</button>
 </div>
 
 <div id="recentSection" class="hidden">
@@ -105,11 +108,13 @@ const tools=[
 {id:'percent',name:'Yüzde hesapla',desc:'Kolayca oran hesapla',icon:'％',cat:'Hesaplama'},
 {id:'age',name:'Yaş hesapla',desc:'Yaşını öğren',icon:'🎂',cat:'Hesaplama'},
 {id:'date',name:'Tarih farkı',desc:'İki tarih arasındaki gün',icon:'📅',cat:'Hesaplama'},
+{id:'calculator',name:'Hesap makinesi',desc:'Dört işlem ve yüzde',icon:'🧮',cat:'Hesaplama'},
 {id:'notes',name:'Notlarım',desc:'Notlarını kaydet',icon:'📝',cat:'Günlük'},
 {id:'letter',name:'Dilekçe hazırla',desc:'Yazını kolayca oluştur',icon:'📄',cat:'Belge'},
 {id:'qr',name:'QR kod oluştur',desc:'Metinden QR kod üret',icon:'▦',cat:'Günlük'},
 {id:'password',name:'Şifre oluştur',desc:'Güçlü şifre üret',icon:'🔐',cat:'Güvenlik'},
-{id:'barcode',name:'Barkod okuyucu',desc:'Kamerayla barkod tara',icon:'▤',cat:'Günlük'}
+{id:'barcode',name:'Barkod okuyucu',desc:'Kamerayla barkod tara',icon:'▤',cat:'Günlük'},
+{id:'currency',name:'Döviz çevirici',desc:'Güncel döviz kurları',icon:'💱',cat:'Finans'}
 ];
 
 let category='Tümü',cameraStream=null,generatedPassword='';
@@ -125,13 +130,10 @@ catch(e){return false}
 function favorites(){return read('pc-favorites',[])}
 function recent(){return read('pc-recent',[])}
 
-/* DÜZELTİLDİ: Kart artık iç içe buton kullanmıyor. */
 function cardHTML(t){
 const fav=favorites().includes(t.id);
 return `<div class="card" onclick="openTool('${t.id}')">
-<button type="button" class="fav ${fav?'on':''}"
-onclick="event.stopPropagation();toggleFavorite('${t.id}')"
-aria-label="Favoriye ekle">${fav?'★':'☆'}</button>
+<button type="button" class="fav ${fav?'on':''}" onclick="event.stopPropagation();toggleFavorite('${t.id}')">${fav?'★':'☆'}</button>
 <div class="symbol">${t.icon}</div>
 <strong>${t.name}</strong>
 <small>${t.desc}</small>
@@ -140,12 +142,8 @@ aria-label="Favoriye ekle">${fav?'★':'☆'}</button>
 
 function renderTools(){
 const q=document.getElementById('search').value.toLocaleLowerCase('tr');
-let list=tools.filter(t=>
-(category==='Tümü'||t.cat===category)&&
-(t.name+' '+t.desc+' '+t.cat).toLocaleLowerCase('tr').includes(q)
-);
-document.getElementById('grid').innerHTML=list.map(cardHTML).join('')||
-'<div class="empty">Aradığın araç bulunamadı.</div>';
+let list=tools.filter(t=>(category==='Tümü'||t.cat===category)&&(t.name+' '+t.desc+' '+t.cat).toLocaleLowerCase('tr').includes(q));
+document.getElementById('grid').innerHTML=list.map(cardHTML).join('')||'<div class="empty">Aradığın araç bulunamadı.</div>';
 document.getElementById('toolCount').textContent=list.length+' araç';
 document.getElementById('listTitle').textContent=category==='Tümü'?'Tüm araçlar':category;
 renderExtras();
@@ -170,10 +168,7 @@ renderTools();
 function toggleFavorite(id){
 let f=favorites();
 f=f.includes(id)?f.filter(x=>x!==id):[...f,id];
-if(!write('pc-favorites',f)){
-alert('Favori kaydedilemedi. Tarayıcı depolama alanını kontrol et.');
-return;
-}
+if(!write('pc-favorites',f)){alert('Favori kaydedilemedi.');return;}
 renderTools();
 }
 
@@ -184,25 +179,21 @@ document.querySelectorAll('.chip').forEach(x=>x.classList.toggle('active',x.text
 renderTools();
 document.getElementById('favSection').scrollIntoView({behavior:'smooth'});
 }
-
 function focusSearch(){
 window.scrollTo({top:0,behavior:'smooth'});
 document.getElementById('search').focus();
 }
-
 function home(){
 stopCamera();
 document.getElementById('panel').style.display='none';
 window.scrollTo({top:0,behavior:'smooth'});
 }
-
 function toggleTheme(){
 document.body.classList.toggle('dark');
 const dark=document.body.classList.contains('dark');
 document.getElementById('themeBtn').textContent=dark?'☀️':'🌙';
 localStorage.setItem('pc-theme',dark?'dark':'light');
 }
-
 if(localStorage.getItem('pc-theme')==='dark'){
 document.body.classList.add('dark');
 document.getElementById('themeBtn').textContent='☀️';
@@ -225,36 +216,104 @@ result.textContent='';
 const forms={
 discount:['🛍️ İndirim Hesaplama','<input id="price" type="number" min="0" placeholder="Ürün fiyatı (TL)"><input id="rate" type="number" min="0" max="100" placeholder="İndirim oranı (%)"><button class="action" onclick="discount()">Hesapla</button>'],
 percent:['％ Yüzde Hesaplama','<input id="number" type="number" placeholder="Sayı"><input id="percent" type="number" placeholder="Yüzde (%)"><button class="action" onclick="percentage()">Hesapla</button>'],
+calculator:['🧮 Hesap Makinesi','<input id="calcA" type="number" step="any" placeholder="Birinci sayı"><select id="calcOp"><option value="+">Toplama (+)</option><option value="-">Çıkarma (-)</option><option value="*">Çarpma (×)</option><option value="/">Bölme (÷)</option><option value="%">Yüzde (%)</option></select><input id="calcB" type="number" step="any" placeholder="İkinci sayı"><button class="action" onclick="calculate()">Hesapla</button><button class="action secondary" onclick="clearCalc()">Temizle</button>'],
 notes:['📝 Notlarım','<textarea id="note" rows="4" placeholder="Notunu yaz..."></textarea><button class="action" onclick="saveNote()">Notu kaydet</button><button class="action secondary" onclick="showNotes()">Kayıtlı notları göster</button>'],
 letter:['📄 Dilekçe Taslağı','<input id="institution" placeholder="Kurum adı"><input id="subject" placeholder="Konu"><textarea id="detail" rows="5" placeholder="Talebini yaz"></textarea><button class="action" onclick="makeLetter()">Taslak oluştur</button>'],
 qr:['▦ QR Kod Oluşturucu','<textarea id="qrText" rows="3" placeholder="Metin veya internet bağlantısı yaz"></textarea><button class="action" onclick="makeQR()">QR kod oluştur</button><div id="qrOutput"></div>'],
 password:['🔐 Güçlü Şifre Oluşturucu','<input id="passLength" type="number" min="8" max="64" value="16" placeholder="Şifre uzunluğu (8-64)"><button class="action" onclick="makePassword()">Şifre oluştur</button><button class="action secondary" onclick="copyPassword()">Şifreyi kopyala</button>'],
 age:['🎂 Yaş Hesaplama','<label>Doğum tarihin</label><input id="birthDate" type="date"><button class="action" onclick="calculateAge()">Yaşımı hesapla</button>'],
 date:['📅 Tarih Farkı','<label>Başlangıç tarihi</label><input id="date1" type="date"><label>Bitiş tarihi</label><input id="date2" type="date"><button class="action" onclick="dateDifference()">Gün farkını hesapla</button>'],
-barcode:['▤ Barkod Okuyucu','<p>Kamera izni vererek barkodu okutabilirsin.</p><button class="action" onclick="startScan()">Kamerayı başlat</button><video id="camera" playsinline autoplay></video><button class="action secondary" onclick="stopCamera()">Kamerayı durdur</button><p>Fotoğraftan okut</p><input id="barcodeFile" type="file" accept="image/*" onchange="scanImage(event)">']
+barcode:['▤ Barkod Okuyucu','<p>Kamera izni vererek barkodu okutabilirsin.</p><button class="action" onclick="startScan()">Kamerayı başlat</button><video id="camera" playsinline autoplay></video><button class="action secondary" onclick="stopCamera()">Kamerayı durdur</button><p>Fotoğraftan okut</p><input id="barcodeFile" type="file" accept="image/*" onchange="scanImage(event)">'],
+currency:['💱 Döviz Çevirici','<label>Miktar</label><input id="currencyAmount" type="number" min="0" step="any" value="1"><label>Kaynak para</label><select id="currencyFrom"><option value="TRY">Türk Lirası (TRY)</option><option value="USD">ABD Doları (USD)</option><option value="EUR">Euro (EUR)</option><option value="GBP">İngiliz Sterlini (GBP)</option></select><label>Hedef para</label><select id="currencyTo"><option value="USD">ABD Doları (USD)</option><option value="TRY">Türk Lirası (TRY)</option><option value="EUR">Euro (EUR)</option><option value="GBP">İngiliz Sterlini (GBP)</option></select><button class="action" onclick="convertCurrency()">Çevir</button><button class="action secondary" onclick="getRates()">Kurları yenile</button><p class="info" id="rateInfo">Döviz kurları internet bağlantısıyla alınır.</p>']
 };
 
 title.textContent=forms[tool][0];
 fields.innerHTML=forms[tool][1];
 panel.scrollIntoView({behavior:'smooth'});
+if(tool==='currency')getRates();
 }
 
 function discount(){
-let p=document.getElementById('price').value;
-let r=document.getElementById('rate').value;
-if(p===''||r===''||Number(p)<0||Number(r)<0||Number(r)>100)
-return result.textContent='Geçerli fiyat ve yüzde gir.';
+let p=document.getElementById('price').value,r=document.getElementById('rate').value;
+if(p===''||r===''||Number(p)<0||Number(r)<0||Number(r)>100)return result.textContent='Geçerli fiyat ve yüzde gir.';
 p=Number(p);r=Number(r);
 result.textContent='İndirim tutarı: '+(p*r/100).toFixed(2)+' TL\nÖdenecek tutar: '+(p*(1-r/100)).toFixed(2)+' TL';
 }
-
 function percentage(){
-let n=document.getElementById('number').value;
-let p=document.getElementById('percent').value;
+let n=document.getElementById('number').value,p=document.getElementById('percent').value;
 if(n===''||p==='')return result.textContent='İki alanı da doldur.';
 result.textContent='Sonuç: '+(Number(n)*Number(p)/100).toFixed(2);
 }
 
+/* HESAP MAKİNESİ */
+function calculate(){
+const a=document.getElementById('calcA').value;
+const b=document.getElementById('calcB').value;
+const op=document.getElementById('calcOp').value;
+if(a===''||b==='')return result.textContent='İki sayıyı da gir.';
+const x=Number(a),y=Number(b);
+let answer;
+if(op==='+')answer=x+y;
+else if(op==='-')answer=x-y;
+else if(op==='*')answer=x*y;
+else if(op==='/'){
+if(y===0)return result.textContent='Sıfıra bölme yapılamaz.';
+answer=x/y;
+}else answer=x*y/100;
+result.textContent='Sonuç: '+Number(answer.toFixed(10)).toLocaleString('tr-TR');
+}
+function clearCalc(){
+document.getElementById('calcA').value='';
+document.getElementById('calcB').value='';
+result.textContent='';
+}
+
+/* DÖVİZ ÇEVİRİCİ */
+let exchangeRates=null;
+let exchangeDate='';
+
+async function getRates(){
+const info=document.getElementById('rateInfo');
+if(!info)return;
+info.textContent='Güncel kurlar alınıyor...';
+try{
+const response=await fetch('https://open.er-api.com/v6/latest/USD');
+if(!response.ok)throw new Error('Kur servisine ulaşılamadı.');
+const data=await response.json();
+if(data.result!=='success'||!data.rates)throw new Error('Kur bilgisi alınamadı.');
+exchangeRates=data.rates;
+exchangeDate=data.time_last_update_utc||'Güncel';
+write('pc-exchange-cache',{rates:exchangeRates,date:exchangeDate});
+info.textContent='Kur güncellendi: '+exchangeDate;
+convertCurrency(false);
+}catch(e){
+const saved=read('pc-exchange-cache',null);
+if(saved&&saved.rates){
+exchangeRates=saved.rates;
+exchangeDate=saved.date||'Önceki kayıt';
+info.textContent='İnternet bağlantısı yok. Son kayıtlı kur kullanılıyor: '+exchangeDate;
+convertCurrency(false);
+}else{
+info.textContent='Kur alınamadı. İnternet bağlantını kontrol edip tekrar dene.';
+}
+}
+}
+
+function convertCurrency(showMessage=true){
+const amount=Number(document.getElementById('currencyAmount').value);
+const from=document.getElementById('currencyFrom').value;
+const to=document.getElementById('currencyTo').value;
+if(document.getElementById('currencyAmount').value===''||!Number.isFinite(amount)||amount<0)
+return result.textContent='Geçerli bir miktar gir.';
+if(!exchangeRates)return result.textContent='Henüz kur bilgisi yok. İnternet bağlantını kontrol et.';
+const fromRate=from==='USD'?1:exchangeRates[from];
+const toRate=to==='USD'?1:exchangeRates[to];
+if(!fromRate||!toRate)return result.textContent='Bu para birimi için kur bulunamadı.';
+const converted=amount/fromRate*toRate;
+result.textContent=amount.toLocaleString('tr-TR')+' '+from+' = '+converted.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:4})+' '+to;
+}
+
+/* NOTLAR */
 function saveNote(){
 let n=document.getElementById('note').value.trim();
 if(!n)return result.textContent='Önce bir not yaz.';
@@ -262,136 +321,52 @@ let notes=read('pratikcep-notes',[]);
 notes.push(n);
 result.textContent=write('pratikcep-notes',notes)?'Not başarıyla kaydedildi.':'Not kaydedilemedi.';
 }
-
 function showNotes(){
 let notes=read('pratikcep-notes',[]);
 result.textContent=notes.length?notes.map((n,i)=>(i+1)+'. '+n).join('\n\n'):'Henüz kayıtlı not yok.';
 }
 
 function makeLetter(){
-let i=document.getElementById('institution').value.trim();
-let s=document.getElementById('subject').value.trim();
-let d=document.getElementById('detail').value.trim();
+let i=document.getElementById('institution').value.trim(),s=document.getElementById('subject').value.trim(),d=document.getElementById('detail').value.trim();
 if(!i||!s||!d)return result.textContent='Lütfen tüm alanları doldur.';
 let t=i.toLocaleUpperCase('tr')+' MAKAMINA\n\nKonu: '+s+'\n\n'+d+'\n\nGereğini arz ederim.\n\nAd Soyad:\nTarih:';
 result.textContent=t;
-let b=document.createElement('button');
-b.className='action';
-b.textContent='Taslağı kopyala';
-b.onclick=()=>copyText(t);
-result.appendChild(b);
+let b=document.createElement('button');b.className='action';b.textContent='Taslağı kopyala';b.onclick=()=>copyText(t);result.appendChild(b);
 }
-
 function makeQR(){
 const t=document.getElementById('qrText').value.trim();
 if(!t)return result.textContent='Önce metin veya bağlantı yaz.';
-const out=document.getElementById('qrOutput');
-out.innerHTML='';
+const out=document.getElementById('qrOutput');out.innerHTML='';
 if(typeof QRCode==='undefined')return result.textContent='QR aracı yüklenemedi. İnternet bağlantısını kontrol et.';
-try{
-new QRCode(out,{text:t,width:240,height:240,correctLevel:QRCode.CorrectLevel.H});
-result.textContent='QR kodun hazır!';
-}catch(e){result.textContent='QR kod oluşturulamadı.';}
+try{new QRCode(out,{text:t,width:240,height:240,correctLevel:QRCode.CorrectLevel.H});result.textContent='QR kodun hazır!';}
+catch(e){result.textContent='QR kod oluşturulamadı.';}
 }
-
 function makePassword(){
 const len=Number(document.getElementById('passLength').value);
-if(!Number.isInteger(len)||len<8||len>64)
-return result.textContent='Uzunluk 8 ile 64 arasında olmalı.';
+if(!Number.isInteger(len)||len<8||len>64)return result.textContent='Uzunluk 8 ile 64 arasında olmalı.';
 const chars='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%&*?';
-const random=new Uint32Array(len);
-crypto.getRandomValues(random);
+const random=new Uint32Array(len);crypto.getRandomValues(random);
 generatedPassword=Array.from(random,x=>chars[x%chars.length]).join('');
 result.textContent='Oluşturulan şifre:\n'+generatedPassword;
 }
-
-function copyPassword(){
-if(!generatedPassword)return result.textContent='Önce şifre oluştur.';
-copyText(generatedPassword);
-}
-
+function copyPassword(){if(!generatedPassword)return result.textContent='Önce şifre oluştur.';copyText(generatedPassword);}
 function copyText(t){
-if(navigator.clipboard&&navigator.clipboard.writeText){
-navigator.clipboard.writeText(t).then(()=>result.textContent+=' \n\nKopyalandı.').catch(()=>result.textContent+=' \n\nKopyalama başarısız.');
-}else{
-result.textContent+=' \n\nKopyalama desteklenmiyor.';
+if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(()=>result.textContent+=' \n\nKopyalandı.').catch(()=>result.textContent+=' \n\nKopyalama başarısız.');
+else result.textContent+=' \n\nKopyalama desteklenmiyor.';
 }
-}
-
 function calculateAge(){
-const v=document.getElementById('birthDate').value;
-if(!v)return result.textContent='Doğum tarihini seç.';
-const b=new Date(v+'T00:00:00'),now=new Date();
-if(b>now)return result.textContent='Doğum tarihi gelecekte olamaz.';
-let y=now.getFullYear()-b.getFullYear();
-let m=now.getMonth()-b.getMonth();
-let d=now.getDate()-b.getDate();
+const v=document.getElementById('birthDate').value;if(!v)return result.textContent='Doğum tarihini seç.';
+const b=new Date(v+'T00:00:00'),now=new Date();if(b>now)return result.textContent='Doğum tarihi gelecekte olamaz.';
+let y=now.getFullYear()-b.getFullYear(),m=now.getMonth()-b.getMonth(),d=now.getDate()-b.getDate();
 if(d<0){m--;d+=new Date(now.getFullYear(),now.getMonth(),0).getDate();}
 if(m<0){y--;m+=12;}
 result.textContent='Yaşın: '+y+' yıl, '+m+' ay, '+d+' gün.';
 }
-
 function dateDifference(){
-const a=document.getElementById('date1').value;
-const b=document.getElementById('date2').value;
+const a=document.getElementById('date1').value,b=document.getElementById('date2').value;
 if(!a||!b)return result.textContent='İki tarihi de seç.';
 const days=Math.abs(Date.parse(b+'T00:00:00')-Date.parse(a+'T00:00:00'))/86400000;
 result.textContent='İki tarih arasında '+days+' gün var.';
 }
 
-async function startScan(){
-if(!('BarcodeDetector' in window))
-return result.textContent='Bu Chrome sürümü barkod taramayı desteklemiyor.';
-try{
-const detector=new BarcodeDetector();
-cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
-const video=document.getElementById('camera');
-video.srcObject=cameraStream;
-await video.play();
-result.textContent='Barkodu kameraya göster.';
-const scan=async()=>{
-if(!cameraStream)return;
-try{
-const codes=await detector.detect(video);
-if(codes.length){
-result.textContent='Okunan barkod:\n'+codes[0].rawValue;
-stopCamera();
-return;
-}
-}catch(e){}
-if(cameraStream)requestAnimationFrame(scan);
-};
-scan();
-}catch(e){
-result.textContent='Kamera açılamadı. Kamera iznini kontrol et.';
-}
-}
-
-function stopCamera(){
-if(cameraStream){
-cameraStream.getTracks().forEach(t=>t.stop());
-cameraStream=null;
-}
-const v=document.getElementById('camera');
-if(v)v.srcObject=null;
-}
-
-async function scanImage(event){
-const file=event.target.files[0];
-if(!file)return;
-if(!('BarcodeDetector' in window))
-return result.textContent='Fotoğraftan barkod okuma bu tarayıcıda desteklenmiyor.';
-try{
-const detector=new BarcodeDetector();
-const bitmap=await createImageBitmap(file);
-const codes=await detector.detect(bitmap);
-result.textContent=codes.length?'Okunan barkod:\n'+codes.map(c=>c.rawValue).join('\n'):'Fotoğrafta barkod bulunamadı.';
-}catch(e){
-result.textContent='Fotoğraf okunamadı.';
-}
-}
-
-renderTools();
-</script>
-</body>
-</html>
+async function sta
