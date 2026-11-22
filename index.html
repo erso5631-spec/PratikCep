@@ -9,91 +9,182 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#f5f7fc;color:#17243b;font-family:Arial,sans-serif;padding-bottom:80px}
-header{background:linear-gradient(135deg,#155eef,#397cf6);color:white;padding:25px 20px 30px;border-radius:0 0 27px 27px}
+:root{--bg:#f4f6fc;--card:#fff;--text:#17243b;--muted:#8490a4;--line:#e9edf5;--blue:#155eef}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,sans-serif;padding-bottom:85px;transition:.2s}
+body.dark{--bg:#101827;--card:#1d293b;--text:#f1f5fb;--muted:#a4b0c2;--line:#344156}
+header{background:linear-gradient(135deg,#155eef,#397cf6);color:white;padding:23px 19px 28px;border-radius:0 0 27px 27px}
 .top{display:flex;justify-content:space-between;align-items:center}
-.logo{font-size:25px;font-weight:bold}
-.tag{font-size:12px;background:#ffffff30;padding:8px 12px;border-radius:20px}
-header h2{margin:25px 0 7px;font-size:23px}
-header p{font-size:14px;color:#e2eaff}
-.search{background:white;border-radius:13px;padding:14px;margin-top:20px}
-.search input{border:0;outline:0;width:100%;font-size:15px}
-main{padding:18px}
-.heading{margin:22px 0 13px;font-size:18px}
+.logo{font-size:25px;font-weight:800}
+.top button{background:#ffffff25;color:white;border:1px solid #ffffff50;border-radius:12px;padding:10px;font-size:18px}
+header h2{font-size:23px;margin:24px 0 6px}
+header p{font-size:14px;color:#e2eaff;margin:0}
+.search{background:white;border-radius:13px;padding:14px;margin-top:20px;display:flex;gap:10px;color:#333}
+.search input{border:0;outline:0;width:100%;font-size:15px;margin:0;padding:0}
+main{padding:17px}
+.heading{display:flex;justify-content:space-between;align-items:center;margin:22px 0 13px}
+.heading h3{margin:0;font-size:18px}
+.heading small{color:var(--muted)}
+.categories{display:flex;gap:8px;overflow-x:auto;padding:2px 0 10px}
+.chip{white-space:nowrap;border:1px solid var(--line);background:var(--card);color:var(--text);padding:9px 14px;border-radius:22px;font-size:13px}
+.chip.active{background:var(--blue);color:white;border-color:var(--blue)}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.card{background:white;border:1px solid #edf0f6;border-radius:17px;padding:16px 13px;text-align:left;min-height:125px;cursor:pointer;color:#17243b;box-shadow:0 4px 14px #14264d08}
-.card:active{transform:scale(.97)}
-.icon{width:43px;height:43px;border-radius:13px;display:grid;place-items:center;font-size:23px;margin-bottom:12px}
-.blue{background:#eaf1ff}.orange{background:#fff0df}.green{background:#e3f8ef}.purple{background:#f1eaff}
+.card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:17px;padding:15px 13px;text-align:left;min-height:128px;cursor:pointer;color:var(--text);box-shadow:0 4px 14px #14264d08}
+.card:active{transform:scale(.98)}
+.card .symbol{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:23px;margin-bottom:11px;background:#eaf1ff}
 .card strong{display:block;font-size:14px;margin-bottom:5px}
-.card small{font-size:12px;color:#8993a5}
-.panel{display:none;background:white;border-radius:18px;padding:18px;margin-top:22px;box-shadow:0 4px 18px #14264d10}
+.card small{font-size:12px;color:var(--muted)}
+.fav{position:absolute;right:10px;top:9px;border:0;background:transparent;color:#a0a9b8;font-size:21px;padding:3px}
+.fav.on{color:#f5a400}
+.panel{display:none;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin-top:22px}
 .panel h3{margin-top:0}
-input,textarea{width:100%;padding:13px;margin:8px 0;border:1px solid #e0e5ee;border-radius:10px;font-size:15px}
-.action{width:100%;padding:14px;background:#155eef;color:white;border:0;border-radius:11px;font-size:15px;margin-top:8px;cursor:pointer}
+input,textarea{width:100%;padding:13px;margin:8px 0;border:1px solid var(--line);border-radius:10px;font-size:15px;background:var(--bg);color:var(--text)}
+.action{width:100%;padding:14px;background:var(--blue);color:white;border:0;border-radius:11px;font-size:15px;margin-top:8px;cursor:pointer}
 .secondary{background:#eaf1ff;color:#155eef}
 .result{white-space:pre-wrap;overflow-wrap:anywhere;margin-top:14px;line-height:1.6}
-.bottom{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #edf0f6;display:flex;justify-content:space-around;padding:12px 5px}
-.bottom button{border:0;background:none;color:#778397;font-size:12px}
+.bottom{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:11px 5px;z-index:5}
+.bottom button{border:0;background:none;color:var(--muted);font-size:12px}
 .bottom b{display:block;font-size:20px;margin-bottom:4px}
+.bottom button.active{color:var(--blue)}
 #qrOutput{margin-top:15px;display:flex;justify-content:center}
 #qrOutput img{max-width:100%;height:auto}
 video{width:100%;border-radius:12px;background:#111;margin-top:10px}
+.empty{color:var(--muted);font-size:13px;padding:12px 2px}
+.hidden{display:none!important}
 </style>
 </head>
 <body>
 <header>
-<div class="top"><div class="logo">✦ PratikCep</div><div class="tag">Günlük yardımcın</div></div>
-<h2>Merhaba! 👋</h2>
-<p>Bugün hangi işini kolaylaştıralım?</p>
-<div class="search">🔎 <input id="search" placeholder="Bir araç ara..." oninput="filterCards()"></div>
-</header>
-<main>
-<h3 class="heading">Hızlı işlemler</h3>
-<div class="grid" id="grid">
-<button class="card" data-name="indirim hesapla" onclick="openTool('discount')"><div class="icon blue">🛍️</div><strong>İndirim hesapla</strong><small>İndirimli fiyatı öğren</small></button>
-<button class="card" data-name="yüzde hesapla" onclick="openTool('percent')"><div class="icon orange">％</div><strong>Yüzde hesapla</strong><small>Kolayca oran hesapla</small></button>
-<button class="card" data-name="notlarım not" onclick="openTool('notes')"><div class="icon green">📝</div><strong>Notlarım</strong><small>Notlarını kaydet</small></button>
-<button class="card" data-name="dilekçe taslağı" onclick="openTool('letter')"><div class="icon purple">📄</div><strong>Dilekçe hazırla</strong><small>Yazını kolayca oluştur</small></button>
-<button class="card" data-name="qr kod oluşturucu" onclick="openTool('qr')"><div class="icon blue">▦</div><strong>QR kod oluştur</strong><small>Metin veya bağlantıdan QR</small></button>
-<button class="card" data-name="şifre parola oluşturucu" onclick="openTool('password')"><div class="icon purple">🔐</div><strong>Şifre oluştur</strong><small>Güçlü şifre üret</small></button>
-<button class="card" data-name="yaş hesaplama doğum tarihi" onclick="openTool('age')"><div class="icon green">🎂</div><strong>Yaş hesapla</strong><small>Yaşını öğren</small></button>
-<button class="card" data-name="tarih gün farkı" onclick="openTool('date')"><div class="icon orange">📅</div><strong>Tarih farkı</strong><small>İki tarih arasındaki gün</small></button>
-<button class="card" data-name="barkod okuyucu tara" onclick="openTool('barcode')"><div class="icon blue">▤</div><strong>Barkod okuyucu</strong><small>Kamerayla barkod tara</small></button>
+<div class="top">
+<div class="logo">✦ PratikCep</div>
+<button onclick="toggleTheme()" id="themeBtn" title="Tema değiştir">🌙</button>
 </div>
+<h2>Merhaba! 👋</h2>
+<p>Günlük işlerini kolaylaştır.</p>
+<div class="search">🔎 <input id="search" placeholder="Araç veya işlem ara..." oninput="renderTools()"></div>
+</header>
+
+<main>
+<div class="heading"><h3>Kategoriler</h3></div>
+<div class="categories" id="categories">
+<button class="chip active" onclick="setCategory('Tümü',this)">Tümü</button>
+<button class="chip" onclick="setCategory('Hesaplama',this)">Hesaplama</button>
+<button class="chip" onclick="setCategory('Günlük',this)">Günlük</button>
+<button class="chip" onclick="setCategory('Belge',this)">Belge</button>
+<button class="chip" onclick="setCategory('Güvenlik',this)">Güvenlik</button>
+</div>
+
+<div id="recentSection" class="hidden">
+<div class="heading"><h3>Son kullanılanlar</h3></div>
+<div class="grid" id="recentGrid"></div>
+</div>
+
+<div id="favSection" class="hidden">
+<div class="heading"><h3>⭐ Favorilerim</h3></div>
+<div class="grid" id="favGrid"></div>
+</div>
+
+<div class="heading"><h3 id="listTitle">Tüm araçlar</h3><small id="toolCount"></small></div>
+<div class="grid" id="grid"></div>
+
 <section class="panel" id="panel">
 <h3 id="title">İşlem</h3>
 <div id="fields"></div>
 <div class="result" id="result"></div>
 </section>
 </main>
-<nav class="bottom">
-<button onclick="home()"><b>⌂</b>Ana sayfa</button>
-<button onclick="openTool('discount')"><b>％</b>Hesaplama</button>
-<button onclick="openTool('notes')"><b>▤</b>Notlar</button>
-<button onclick="openTool('letter')"><b>✎</b>Evrak</button>
-</nav>
-<script>
-const panel=document.getElementById('panel');
-const title=document.getElementById('title');
-const fields=document.getElementById('fields');
-const result=document.getElementById('result');
-let cameraStream=null;
-let generatedPassword='';
 
+<nav class="bottom">
+<button class="active" onclick="home()"><b>⌂</b>Ana sayfa</button>
+<button onclick="showFavorites()"><b>☆</b>Favoriler</button>
+<button onclick="focusSearch()"><b>⌕</b>Ara</button>
+</nav>
+
+<script>
+const tools=[
+{id:'discount',name:'İndirim hesapla',desc:'İndirimli fiyatı öğren',icon:'🛍️',cat:'Hesaplama'},
+{id:'percent',name:'Yüzde hesapla',desc:'Kolayca oran hesapla',icon:'％',cat:'Hesaplama'},
+{id:'age',name:'Yaş hesapla',desc:'Yaşını öğren',icon:'🎂',cat:'Hesaplama'},
+{id:'date',name:'Tarih farkı',desc:'İki tarih arasındaki gün',icon:'📅',cat:'Hesaplama'},
+{id:'notes',name:'Notlarım',desc:'Notlarını kaydet',icon:'📝',cat:'Günlük'},
+{id:'letter',name:'Dilekçe hazırla',desc:'Yazını kolayca oluştur',icon:'📄',cat:'Belge'},
+{id:'qr',name:'QR kod oluştur',desc:'Metinden QR kod üret',icon:'▦',cat:'Günlük'},
+{id:'password',name:'Şifre oluştur',desc:'Güçlü şifre üret',icon:'🔐',cat:'Güvenlik'},
+{id:'barcode',name:'Barkod okuyucu',desc:'Kamerayla barkod tara',icon:'▤',cat:'Günlük'}
+];
+let category='Tümü',cameraStream=null,generatedPassword='';
+
+function read(key,def){try{return JSON.parse(localStorage.getItem(key))??def}catch(e){return def}}
+function write(key,value){try{localStorage.setItem(key,JSON.stringify(value));return true}catch(e){return false}}
+function favorites(){return read('pc-favorites',[])}
+function recent(){return read('pc-recent',[])}
+function cardHTML(t){
+const fav=favorites().includes(t.id);
+return `<button class="card" onclick="openTool('${t.id}')">
+<button class="fav ${fav?'on':''}" onclick="event.stopPropagation();toggleFavorite('${t.id}')" aria-label="Favori">${fav?'★':'☆'}</button>
+<div class="symbol">${t.icon}</div><strong>${t.name}</strong><small>${t.desc}</small></button>`;
+}
+function renderTools(){
+const q=document.getElementById('search').value.toLocaleLowerCase('tr');
+let list=tools.filter(t=>(category==='Tümü'||t.cat===category)&&(t.name+' '+t.desc+' '+t.cat).toLocaleLowerCase('tr').includes(q));
+document.getElementById('grid').innerHTML=list.map(cardHTML).join('')||'<div class="empty">Aradığın araç bulunamadı.</div>';
+document.getElementById('toolCount').textContent=list.length+' araç';
+document.getElementById('listTitle').textContent=category==='Tümü'?'Tüm araçlar':category;
+renderExtras();
+}
+function renderExtras(){
+const r=recent().map(id=>tools.find(t=>t.id===id)).filter(Boolean);
+const f=favorites().map(id=>tools.find(t=>t.id===id)).filter(Boolean);
+document.getElementById('recentSection').classList.toggle('hidden',!r.length);
+document.getElementById('favSection').classList.toggle('hidden',!f.length);
+document.getElementById('recentGrid').innerHTML=r.map(cardHTML).join('');
+document.getElementById('favGrid').innerHTML=f.map(cardHTML).join('');
+}
+function setCategory(c,el){
+category=c;
+document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+el.classList.add('active');
+renderTools();
+}
+function toggleFavorite(id){
+let f=favorites();
+f=f.includes(id)?f.filter(x=>x!==id):[...f,id];
+write('pc-favorites',f);
+renderTools();
+}
+function showFavorites(){
+category='Tümü';
+document.getElementById('search').value='';
+document.querySelectorAll('.chip').forEach(x=>x.classList.toggle('active',x.textContent==='Tümü'));
+renderTools();
+document.getElementById('favSection').scrollIntoView({behavior:'smooth'});
+}
+function focusSearch(){
+window.scrollTo({top:0,behavior:'smooth'});
+document.getElementById('search').focus();
+}
 function home(){
 stopCamera();
-panel.style.display='none';
+document.getElementById('panel').style.display='none';
 window.scrollTo({top:0,behavior:'smooth'});
 }
-function filterCards(){
-const q=document.getElementById('search').value.toLocaleLowerCase('tr');
-document.querySelectorAll('#grid .card').forEach(c=>{
-c.style.display=c.dataset.name.includes(q)?'block':'none';
-});
+function toggleTheme(){
+document.body.classList.toggle('dark');
+const dark=document.body.classList.contains('dark');
+document.getElementById('themeBtn').textContent=dark?'☀️':'🌙';
+localStorage.setItem('pc-theme',dark?'dark':'light');
 }
+if(localStorage.getItem('pc-theme')==='dark'){
+document.body.classList.add('dark');
+document.getElementById('themeBtn').textContent='☀️';
+}
+
+const panel=document.getElementById('panel'),title=document.getElementById('title'),fields=document.getElementById('fields'),result=document.getElementById('result');
+
 function openTool(tool){
 stopCamera();
+const r=[tool,...recent().filter(x=>x!==tool)].slice(0,4);
+write('pc-recent',r);
+renderExtras();
 panel.style.display='block';
 fields.innerHTML='';
 result.textContent='';
@@ -126,68 +217,45 @@ result.textContent='Sonuç: '+(Number(n)*Number(p)/100).toFixed(2);
 function saveNote(){
 let n=document.getElementById('note').value.trim();
 if(!n)return result.textContent='Önce bir not yaz.';
-try{
-let notes=JSON.parse(localStorage.getItem('pratikcep-notes')||'[]');
+let notes=read('pratikcep-notes',[]);
 notes.push(n);
-localStorage.setItem('pratikcep-notes',JSON.stringify(notes));
-result.textContent='Not başarıyla kaydedildi.';
-}catch(e){result.textContent='Not kaydedilemedi.';}
+result.textContent=write('pratikcep-notes',notes)?'Not başarıyla kaydedildi.':'Not kaydedilemedi.';
 }
 function showNotes(){
-try{
-let notes=JSON.parse(localStorage.getItem('pratikcep-notes')||'[]');
+let notes=read('pratikcep-notes',[]);
 result.textContent=notes.length?notes.map((n,i)=>(i+1)+'. '+n).join('\n\n'):'Henüz kayıtlı not yok.';
-}catch(e){result.textContent='Notlar okunamadı.';}
 }
 function makeLetter(){
-let i=document.getElementById('institution').value.trim();
-let s=document.getElementById('subject').value.trim();
-let d=document.getElementById('detail').value.trim();
+let i=document.getElementById('institution').value.trim(),s=document.getElementById('subject').value.trim(),d=document.getElementById('detail').value.trim();
 if(!i||!s||!d)return result.textContent='Lütfen tüm alanları doldur.';
 let t=i.toLocaleUpperCase('tr')+' MAKAMINA\n\nKonu: '+s+'\n\n'+d+'\n\nGereğini arz ederim.\n\nAd Soyad:\nTarih:';
 result.textContent=t;
-let b=document.createElement('button');
-b.className='action';b.textContent='Taslağı kopyala';
-b.onclick=()=>copyText(t);
-result.appendChild(b);
+let b=document.createElement('button');b.className='action';b.textContent='Taslağı kopyala';b.onclick=()=>copyText(t);result.appendChild(b);
 }
 function makeQR(){
 const t=document.getElementById('qrText').value.trim();
 if(!t)return result.textContent='Önce metin veya bağlantı yaz.';
-const out=document.getElementById('qrOutput');
-out.innerHTML='';
-if(typeof QRCode==='undefined'){
-result.textContent='QR aracı yüklenemedi. İnternet bağlantını kontrol et.';
-return;
-}
-try{
-new QRCode(out,{text:t,width:240,height:240,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
-result.textContent='QR kodun hazır!';
-}catch(e){result.textContent='QR kod oluşturulamadı.';}
+const out=document.getElementById('qrOutput');out.innerHTML='';
+if(typeof QRCode==='undefined')return result.textContent='QR aracı yüklenemedi. İnternet bağlantısını kontrol et.';
+try{new QRCode(out,{text:t,width:240,height:240,correctLevel:QRCode.CorrectLevel.H});result.textContent='QR kodun hazır!';}
+catch(e){result.textContent='QR kod oluşturulamadı.';}
 }
 function makePassword(){
 const len=Number(document.getElementById('passLength').value);
 if(!Number.isInteger(len)||len<8||len>64)return result.textContent='Uzunluk 8 ile 64 arasında olmalı.';
 const chars='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%&*?';
-const random=new Uint32Array(len);
-crypto.getRandomValues(random);
+const random=new Uint32Array(len);crypto.getRandomValues(random);
 generatedPassword=Array.from(random,x=>chars[x%chars.length]).join('');
 result.textContent='Oluşturulan şifre:\n'+generatedPassword;
 }
-function copyPassword(){
-if(!generatedPassword)return result.textContent='Önce şifre oluştur.';
-copyText(generatedPassword);
-}
+function copyPassword(){if(!generatedPassword)return result.textContent='Önce şifre oluştur.';copyText(generatedPassword);}
 function copyText(t){
-if(navigator.clipboard&&navigator.clipboard.writeText){
-navigator.clipboard.writeText(t).then(()=>result.textContent+=' \n\nKopyalandı.').catch(()=>result.textContent+=' \n\nKopyalama başarısız.');
-}else{result.textContent+=' \n\nKopyalama desteklenmiyor.';}
+if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(()=>result.textContent+=' \n\nKopyalandı.').catch(()=>result.textContent+=' \n\nKopyalama başarısız.');
+else result.textContent+=' \n\nKopyalama desteklenmiyor.';
 }
 function calculateAge(){
-const v=document.getElementById('birthDate').value;
-if(!v)return result.textContent='Doğum tarihini seç.';
-const b=new Date(v+'T00:00:00'),now=new Date();
-if(b>now)return result.textContent='Doğum tarihi gelecekte olamaz.';
+const v=document.getElementById('birthDate').value;if(!v)return result.textContent='Doğum tarihini seç.';
+const b=new Date(v+'T00:00:00'),now=new Date();if(b>now)return result.textContent='Doğum tarihi gelecekte olamaz.';
 let y=now.getFullYear()-b.getFullYear(),m=now.getMonth()-b.getMonth(),d=now.getDate()-b.getDate();
 if(d<0){m--;d+=new Date(now.getFullYear(),now.getMonth(),0).getDate();}
 if(m<0){y--;m+=12;}
@@ -204,37 +272,28 @@ if(!('BarcodeDetector' in window))return result.textContent='Bu Chrome sürümü
 try{
 const detector=new BarcodeDetector();
 cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
-const video=document.getElementById('camera');
-video.srcObject=cameraStream;
-await video.play();
+const video=document.getElementById('camera');video.srcObject=cameraStream;await video.play();
 result.textContent='Barkodu kameraya göster.';
 const scan=async()=>{
 if(!cameraStream)return;
-try{
-const codes=await detector.detect(video);
-if(codes.length){result.textContent='Okunan barkod:\n'+codes[0].rawValue;stopCamera();return;}
-}catch(e){}
+try{const codes=await detector.detect(video);if(codes.length){result.textContent='Okunan barkod:\n'+codes[0].rawValue;stopCamera();return;}}catch(e){}
 if(cameraStream)requestAnimationFrame(scan);
-};
-scan();
+};scan();
 }catch(e){result.textContent='Kamera açılamadı. Kamera iznini kontrol et.';}
 }
 function stopCamera(){
 if(cameraStream){cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null;}
-const v=document.getElementById('camera');
-if(v)v.srcObject=null;
+const v=document.getElementById('camera');if(v)v.srcObject=null;
 }
 async function scanImage(event){
-const file=event.target.files[0];
-if(!file)return;
+const file=event.target.files[0];if(!file)return;
 if(!('BarcodeDetector' in window))return result.textContent='Fotoğraftan barkod okuma bu tarayıcıda desteklenmiyor.';
 try{
-const detector=new BarcodeDetector();
-const bitmap=await createImageBitmap(file);
-const codes=await detector.detect(bitmap);
+const detector=new BarcodeDetector(),bitmap=await createImageBitmap(file),codes=await detector.detect(bitmap);
 result.textContent=codes.length?'Okunan barkod:\n'+codes.map(c=>c.rawValue).join('\n'):'Fotoğrafta barkod bulunamadı.';
 }catch(e){result.textContent='Fotoğraf okunamadı.';}
 }
+renderTools();
 </script>
 </body>
  </html>
